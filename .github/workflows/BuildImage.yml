@@ -4,7 +4,7 @@ on: [push, pull_request_target, workflow_dispatch]
 
 env:
   GITHUB_REPO: "Pratician/docker-mods" #don't modify
-  ENDPOINT: "linuxserver/mods" #don't modify
+  ENDPOINT: "Pratician/mods" #don't modify
   BASEIMAGE: "swag" #replace
   MODNAME: "auto-proxy" #replace
 
