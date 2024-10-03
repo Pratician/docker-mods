@@ -9,8 +9,8 @@ on:
 
 env:
   MOD_VERSION: ${{ inputs.mod_version }}
-  GITHUB_REPO: "linuxserver/docker-mods" #don't modify
-  ENDPOINT: "linuxserver/mods" #don't modify
+  GITHUB_REPO: "Pratician/docker-mods" #don't modify
+  ENDPOINT: "Pratician/mods" #don't modify
   BASEIMAGE: "master"
   MODNAME: "dummy"
   MULTI_ARCH: "false" #set to false if not needed
