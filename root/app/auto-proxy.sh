@@ -3,18 +3,20 @@
 AUTO_GEN=""
 # figure out which containers to generate confs for or which confs to remove
 if [ ! -f /auto-proxy/enabled_containers ]; then
-    docker ps --filter "label=swag=enable" --format "{{.Names}}" > /auto-proxy/enabled_containers
+    # Using uniq to cover for issues from https://github.com/docker/cli/issues/4155
+    # Using sed to grab jsut the portion which reflect the container
+     docker node ps $(docker node ls -q)  --filter "label=swag=enable" --filter "desired-state=Running"  --format "{{.Name}}" | uniq | sed -E  's/(.*)\.(.*)/\1/' > /auto-proxy/enabled_containers
     AUTO_GEN=$(cat /auto-proxy/enabled_containers)
 else
-    ENABLED_CONTAINERS=$(docker ps --filter "label=swag=enable" --format "{{.Names}}")
+    ENABLED_CONTAINERS=$(docker node ps $(docker node ls -q)  --filter "label=swag=enable" --filter "desired-state=Running"  --format "{{.Name}}" | uniq | sed -E  's/(.*)\.(.*)/\1/')
     for CONTAINER in ${ENABLED_CONTAINERS}; do
         if [ ! -f "/auto-proxy/${CONTAINER}.conf" ]; then
             echo "**** New container ${CONTAINER} detected, will generate new conf. ****"
             AUTO_GEN="${CONTAINER} ${AUTO_GEN}"
         else
-            INSPECTION=$(docker inspect ${CONTAINER})
+            INSPECTION=$(docker service inspect ${CONTAINER})
             for VAR in swag_address swag_port swag_proto swag_url swag_auth swag_auth_bypass swag_server_custom_directive; do
-                VAR_VALUE=$(echo ${INSPECTION} | jq -r ".[0].Config.Labels[\"${VAR}\"]")
+                VAR_VALUE=$(echo ${INSPECTION} | jq -r ".[0].Spec.Labels[\"${VAR}\"]")
                 if [ "${VAR_VALUE}" == "null" ]; then
                     VAR_VALUE=""
                 fi
@@ -38,10 +40,10 @@ else
 fi
 
 for CONTAINER in ${AUTO_GEN}; do
-    INSPECTION=$(docker inspect ${CONTAINER})
+    INSPECTION=$(docker service inspect ${CONTAINER})
     rm -rf "/auto-proxy/${CONTAINER}.conf"
     for VAR in swag_address swag_port swag_proto swag_url swag_auth swag_auth_bypass swag_server_custom_directive; do
-        VAR_VALUE=$(echo ${INSPECTION} | jq -r ".[0].Config.Labels[\"${VAR}\"]")
+        VAR_VALUE=$(echo ${INSPECTION} | jq -r ".[0].Spec.Labels[\"${VAR}\"]")
         if [ "${VAR_VALUE}" == "null" ]; then
             VAR_VALUE=""
         fi
@@ -123,7 +125,7 @@ DUDE
         sed -i "s|<container_name>|${swag_address}|g" "/etc/nginx/http.d/auto-proxy-${CONTAINER}.subdomain.conf"
         echo "**** Setting upstream address ${swag_address} for ${CONTAINER} ****"
         if [ -z "${swag_port}" ]; then
-            swag_port=$(docker inspect ${CONTAINER} | jq -r '.[0].NetworkSettings.Ports | keys[0]' | sed 's|/.*||')
+            swag_port=$(docker service inspect ${CONTAINER} | jq -r '.[0].Endpoint.Ports[0].TargetPort')
             if [ "${swag_port}" == "null" ]; then
                 echo "**** No exposed ports found for ${CONTAINER}. Setting reverse proxy port to 80. ****"
                 swag_port="80"
