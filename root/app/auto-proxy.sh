@@ -5,7 +5,7 @@ AUTO_GEN=""
 if [ ! -f /auto-proxy/enabled_containers ]; then
     # Using uniq to cover for issues from https://github.com/docker/cli/issues/4155
     # Using sed to grab jsut the portion which reflect the container
-     docker node ps $(docker node ls -q)  --filter "label=swag=enable" --filter "desired-state=Running"  --format "{{.Name}}" | uniq | sed -E  's/.*_(.*)\.(.*)/\1/' > /auto-proxy/enabled_containers
+     docker node ps $(docker node ls -q)  --filter "label=swag=enable" --filter "desired-state=Running"  --format "{{.Name}}" | uniq | sed -E  's/(.*)\.(.*)/\1/' > /auto-proxy/enabled_containers
     AUTO_GEN=$(cat /auto-proxy/enabled_containers)
 else
     ENABLED_SERVICES=$(docker node ps $(docker node ls -q)  --filter "label=swag=enable" --filter "desired-state=Running"  --format "{{.Name}}" | uniq | sed -E  's/(.*)\.(.*)/\1/')
