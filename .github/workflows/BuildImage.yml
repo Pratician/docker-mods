@@ -3,7 +3,7 @@ name: Build Image
 on: [push, pull_request_target, workflow_dispatch]
 
 env:
-  GITHUB_REPO: "linuxserver/docker-mods" #don't modify
+  GITHUB_REPO: "Pratician/docker-mods" #don't modify
   ENDPOINT: "linuxserver/mods" #don't modify
   BASEIMAGE: "swag" #replace
   MODNAME: "auto-proxy" #replace
